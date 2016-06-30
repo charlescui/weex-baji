@@ -14,3 +14,9 @@
 	1. 当前时间各个频道正在直播的节目信息，以及该频道最新视频截图
 2. 今日节目
 	3. 当前频道今天的直播节目清单
+
+## APP截图
+
+> 频道/正在直播/今日节目的演示截图
+
+<img src="https://raw.githubusercontent.com/charlescui/weex-baji/master/images/channels.jpg" width="160" /><img src="https://raw.githubusercontent.com/charlescui/weex-baji/master/images/playing.jpg" width="160" /><img src="https://raw.githubusercontent.com/charlescui/weex-baji/master/images/today.jpg" width="160" />
