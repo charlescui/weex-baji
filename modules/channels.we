@@ -1,0 +1,135 @@
+<template>
+  <wxc-navpage data-role="none" background-color="#ff5898" title="频道列表" title-color="white" left-item-title="返回" right-item-title="频道" right-item-src="http://gtms02.alicdn.com/tps/i2/TB1ED7iMpXXXXXEXXXXWA_BHXXX-48-48.png">
+    <div>
+      <list class="list">
+        <refresh class="refresh-view" display="{{refresh_display}}" onrefresh="onrefresh">
+          <text class="refresh-arrow" if="{{(refresh_display==='hide')}}">↓ 下拉刷新当前直播信息</text>
+          <loading-indicator></loading-indicator>
+        </refresh>
+        <cell onappear="onappear" ondisappear="ondisappear" class="row" repeat="{{rows}}" index="{{$index}}">
+          <div class="item" cid={{cid}} onclick="oncellclick" >
+            <text class="channel-text">{{name}}</text>
+          </div>
+        </cell>
+      </list>
+    </div>
+  </wxc-navpage>
+</template>
+
+<style>
+  .list {
+    height: 1200px;
+  }
+  .item {
+    height: 80px;
+    border-bottom-width: 2px;
+    border-bottom-color: #c0c0c0;
+    margin-left: 10px;
+    justify-content: center;
+  }
+  .channel-text {
+    font-size: 46px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+  }
+</style>
+
+<script>
+  require('weex-components');
+  var utils = require('../model/utils');
+  var channel = require('../model/channel');
+  module.exports = {
+    data: {
+      navBarHeight: 88,
+      refresh_display: 'hidden',
+      dir: 'examples',
+      baseURL: '',
+      channels: {},
+      rows: []
+    },
+    ready: function() {
+    },
+    created: function() {
+        var self = this;
+        // 保存频道列表
+        channel.getEpgChannelsIndex(function(ret) {
+          for (var i = 0; i < ret.data.length; i++) {
+              var item = ret.data[i];
+              self.channels[item.cid] = item;
+              self.rows.push(item);
+          }
+        })
+        this.$getConfig(function (config) {
+            var env = config.env;
+            if(env.platform == 'iOS'){
+              var scale = env.scale;
+              var deviceWidth = env.deviceWidth / scale;
+              this.navBarHeight = 64.0 * 750.0 / deviceWidth;
+            }
+        }.bind(this));
+
+        this.$on('naviBar.rightItem.click',function(e){
+          var params = {
+              'url': this.baseURL + 'Baji/modules/channel-list.js',
+              'animated': 'true'
+          };
+          var navigator = require('@weex-module/navigator');
+          navigator.push(params, function(e) {
+              //callback
+          });
+        });
+
+        this.$on('naviBar.leftItem.click',function(e){
+          var params = {
+              'animated': 'true'
+          };
+          var navigator = require('@weex-module/navigator');
+          navigator.pop(params, function(e) {
+              //callback
+          });
+        });
+
+        var bundleUrl = this.$getConfig().bundleUrl;
+        bundleUrl = new String(bundleUrl);
+        console.log('hit', bundleUrl);
+        var nativeBase;
+        var isAndroidAssets = bundleUrl.indexOf('file://assets/') >= 0;
+
+        var isiOSAssets = bundleUrl.indexOf('file:///') >= 0 && bundleUrl.indexOf('WeexDemo.app') > 0;
+        if (isAndroidAssets) {
+          nativeBase = 'file://assets/';
+        }
+        else if (isiOSAssets) {
+          // file:///var/mobile/Containers/Bundle/Application/{id}/WeexDemo.app/
+          // file:///Users/{user}/Library/Developer/CoreSimulator/Devices/{id}/data/Containers/Bundle/Application/{id}/WeexDemo.app/
+          nativeBase = bundleUrl.substring(0, bundleUrl.lastIndexOf('/') + 1);
+        }
+        else {
+          var host = 'localhost:12580';
+          var matches = /\/\/([^\/]+?)\//.exec(this.$getConfig().bundleUrl);
+          if (matches && matches.length >= 2) {
+            host = matches[1];
+          }
+          nativeBase = 'http://' + host + '/' + this.dir + '/build/';
+        }
+        var h5Base = './index.html?page=./' + this.dir + '/build/';
+        // in Native
+        var base = nativeBase;
+        if (typeof window === 'object') {
+          // in Browser or WebView
+          base = h5Base;
+        }
+        this.baseURL = base;
+    },
+    methods: {
+      oncellclick: function(e) {
+        var self = this;
+        var params = {
+          'url':  self.baseURL+"Baji/modules/epg-list.js?cid="+e.target.attr.cid,
+          'animated' : 'true',
+        }
+        self.$call('navigator','push',params, function () {});
+      }
+    }
+  }
+</script>

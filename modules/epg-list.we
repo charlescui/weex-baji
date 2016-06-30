@@ -1,0 +1,68 @@
+<template>
+  <wxc-navpage data-role="none" background-color="#ff5898" title="今日节目" title-color="white" left-item-title="返回" left-item-color="white">
+    <div>
+      <list class="list">
+        <cell onappear="onappear" ondisappear="ondisappear" class="row" repeat="{{rows}}" index="{{$index}}">
+          <div class="item">
+            <epg-item cid="{{cid}}" start_time_f="{{start_time_f}}" end_time_f="{{end_time_f}}" name="{{name}}"></epg-item>
+          </div>
+        </cell>
+      </list>
+    </div>
+  </wxc-navpage>
+</template>
+
+<style>
+  .list {
+    height: 1200px;
+  }
+</style>
+
+<script>
+    require('weex-components');
+    var _ = require('underscore');
+    // var utils = require('../model/utils');
+    var channel = require('../model/channel');
+
+    module.exports = {
+        methods: {
+          getParameterByName: function (name, url) {
+              name = name.replace(/[\[\]]/g, "\\$&");
+              var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                      results = regex.exec(url);
+              if (!results) return null;
+              if (!results[2]) return '';
+              return decodeURIComponent(results[2].replace(/\+/g, " "));
+          }
+        },
+        data: {
+          cid: '',
+          rows: []//EPG数据
+        },
+        init: function() {
+        },
+        created: function(){
+          var self = this;
+
+          var bundleUrl = this.$getConfig().bundleUrl;
+          self.cid = self.getParameterByName('cid', bundleUrl);
+
+          channel.getEpgToday(self.cid, function(ret){
+            for (var i = 0; i < ret.data.length; i++) {
+                var item = ret.data[i];
+                if (item) {
+                  self.rows.push(item);
+                }
+            }
+          });
+
+          self.$on('naviBar.leftItem.click',function(e){
+            var params = {
+                'animated': 'true'
+            };
+            this.$call('navigator', 'pop', params, function () {
+            });
+          });
+        }
+    }
+</script>

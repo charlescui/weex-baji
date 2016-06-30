@@ -1,0 +1,92 @@
+<template>
+        <div class="wrapper" id="launch-page">
+            <image class="launch-bg-img" style="" src="{{img}}" resize="stretch"></image>
+                <wxc-button class="launch-button" onclick="click" id="launch-button" value="点 击 进 入" onclick="{{opacity}}" size="large"
+                         style=""></wxc-button>
+        </div>
+</template>
+
+<style>
+  #launch-page {
+  }
+  .launch-bg-img {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 750px;
+    height: 1200px;
+
+    filter:alpha(opacity:60);
+    opacity:0.6;
+  }
+  .launch-button {
+    position: absolute;
+    left: 225px;
+    top: 800px;
+    width: 300px;
+    height: 80px;
+    border-style: solid;
+    border-width: 3px;
+    border-color: #333;
+  }
+</style>
+
+<script>
+    require('weex-components');
+    module.exports = {
+        data: {
+          time: 3000,//ms
+          opacity: 0.1,
+          img: "http://hbimg.b0.upaiyun.com/ab83a6f41bea86c55bb9525296f519caaf5f1166f5f7-04jBQB_fw658"
+        },
+        // https://github.com/weexteam/article/issues/31
+        init: function(e) {
+        },
+        created: function(e) {
+        },
+        ready: function(e) {
+          var self = this;
+          self.opacity();
+        },
+        methods: {
+          opacity: function() {
+            var self = this;
+
+            var animation = require('@weex-module/animation');
+            var btn = this.$el('launch-button');
+            animation.transition(btn, {
+              styles: {
+                opacity: 1
+              },
+              duration: self.time, //ms
+              timingFunction: 'ease-in',
+              delay: 2000 //ms
+            }, function () {
+              nativeLog('animation finished.')
+            })
+          },
+          click: function(e) {
+            var self = this;
+
+            var animation = require('@weex-module/animation');
+            var launchPage = this.$el('launch-page');
+            animation.transition(launchPage, {
+              styles: {
+                opacity: 1
+              },
+              duration: self.time, //ms
+              timingFunction: 'ease-in',
+              delay: 0 //ms
+            }, function () {
+              var params = {
+                  'animated': 'false'
+              };
+              var navigator = require('@weex-module/navigator');
+              navigator.pop(params, function(e) {
+                  //callback
+              });
+            })
+          }
+        }
+    }
+</script>

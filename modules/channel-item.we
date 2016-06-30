@@ -1,0 +1,115 @@
+<template>
+    <div class="channel-epg"  onclick="oncellclick">
+        <text class="text-name">{{name}}</text>
+        <image class='latest_snap' src="http://frames.baji.tv/{{cid}}/latest.jpg?{{ts}}"></image>
+        <div class="process-bar">
+          <div class="process-bar-content" style="width: {{rate_cost * 750}}px">
+
+          </div>
+        </div>
+    </div>
+</template>
+
+<style>
+    .channel-epg {
+      justify-content:flex-start;
+      flex-direction:column;
+      height: 860px;
+      border-bottom-width: 2px;
+      border-bottom-color: #c0c0c0;
+      margin-left: 10px;
+    }
+    .text-name {
+      margin-top: 10px;
+      flex: 1;
+      font-size: 47;
+      margin-bottom: 20px;
+    }
+    .latest_snap {
+      width: 730px;
+      height: 730px;
+    }
+    .process-bar {
+      justify-content:flex-start;
+      flex-direction:row;
+      height: 30px;
+      width: 100%;
+      flex: 1;
+    }
+    .process-bar-content {
+      float: left;
+      position: relative;
+      height: 100%;
+      background-color: #0FE0EF;
+    }
+</style>
+
+<script>
+    require('weex-components');
+    var _ = require('underscore');
+    var utils = require('../model/utils');
+    module.exports = {
+        methods: {
+          oncellclick: function(e) {
+            var self = this;
+            var params = {
+              'url':  self.epgURL,
+              'animated' : 'true',
+            }
+            self.$call('navigator','push',params, function () {});
+          }
+        },
+        data: {
+          cid: "",
+          baseURL: '',
+          epgURL: '',
+          ts: ''
+        },
+        created: function(){
+          var self = this;
+          var modal = require('@weex-module/modal');
+
+          this.ts = _.now();
+          console.log('Cell cid: '+self.cid+" TS: "+this.ts);
+          // 本剧集总时长
+          var total_cost = self.end_time - self.start_time;
+          // 已经开始时长
+          var now_cost = this.ts/1000 - self.start_time;
+          self.rate_cost = now_cost/total_cost;
+
+          var bundleUrl = this.$getConfig().bundleUrl;
+          bundleUrl = new String(bundleUrl);
+          console.log('hit', bundleUrl);
+          var nativeBase;
+          var isAndroidAssets = bundleUrl.indexOf('file://assets/') >= 0;
+
+          var isiOSAssets = bundleUrl.indexOf('file:///') >= 0 && bundleUrl.indexOf('WeexDemo.app') > 0;
+          if (isAndroidAssets) {
+            nativeBase = 'file://assets/';
+          }
+          else if (isiOSAssets) {
+            // file:///var/mobile/Containers/Bundle/Application/{id}/WeexDemo.app/
+            // file:///Users/{user}/Library/Developer/CoreSimulator/Devices/{id}/data/Containers/Bundle/Application/{id}/WeexDemo.app/
+            nativeBase = bundleUrl.substring(0, bundleUrl.lastIndexOf('/') + 1);
+          }
+          else {
+            var host = 'localhost:12580';
+            var matches = /\/\/([^\/]+?)\//.exec(this.$getConfig().bundleUrl);
+            if (matches && matches.length >= 2) {
+              host = matches[1];
+            }
+            nativeBase = 'http://' + host + '/examples/build/';
+          }
+          var h5Base = './index.html?page=./examples/build/';
+          // in Native
+          var base = nativeBase;
+          if (typeof window === 'object') {
+            // in Browser or WebView
+            base = h5Base;
+          }
+          this.baseURL = base;
+          // 设置跳转页面地址
+          self.epgURL = self.baseURL+"Baji/modules/epg-list.js?cid="+self.cid;
+        }
+    }
+</script>

@@ -1,0 +1,74 @@
+<template>
+  <wxc-navpage data-role="none" background-color="#ff5898" title="登录" title-color="white">
+    <div class="wrapper">
+        <web class="content" id="webview" src='{{url}}' onpagefinish="finishload" onerror="failload"></web>
+    </div>
+  </wxc-navpage>
+</template>
+
+<style>
+    .wrapper {
+        width: 750;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    .content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin-top: 0;
+        margin-bottom: 70;
+    }
+    .toolbar {
+        flex-direction: row;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 70;
+    }
+</style>
+
+<script>
+    module.exports = {
+        data: {
+          url: "https://oauth.taobao.com/authorize?response_type=token&client_id=23256172&view=wap"
+        },
+        methods: {
+            finishload: function(e) {
+                var rpath = new RegExp('[http|https]\:\/\/oauth\.taobao\.com\/oauth2\?.*');
+                if (rpath.test(e.url)) {
+                  //
+                  // 登录成功
+                  // 获取用户信息
+                  //
+
+                  var modal = require('@weex-module/modal');
+                  modal.toast({'message': 'URL:'+e.url, 'duration': 1});
+                  var params = {
+                      'animated': 'true'
+                  };
+                  var navigator = require('@weex-module/navigator');
+                  navigator.pop(params, function(e) {
+                      //callback
+                  });
+                }
+            },
+            failload: function(e) {
+            },
+            getParameterByName: function (name, url) {
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                        results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+        }
+    }
+</script>

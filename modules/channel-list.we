@@ -1,0 +1,139 @@
+<template>
+  <wxc-navpage data-role="none" background-color="#ff5898" title="正在直播" title-color="white" left-item-title="返回" left-item-color="white">
+    <div>
+      <list class="list">
+        <refresh class="refresh-view" display="{{refresh_display}}" onrefresh="onrefresh">
+          <text class="refresh-arrow" if="{{(refresh_display==='hide')}}">↓ 下拉刷新当前直播信息</text>
+          <loading-indicator></loading-indicator>
+        </refresh>
+        <cell onappear="onappear" ondisappear="ondisappear" class="row" repeat="{{rows}}" index="{{$index}}">
+          <div class="item">
+            <channel-item cid="{{cid}}" start_time="{{start_time}}" end_time="{{end_time}}" name="{{name}}"></channel-item>
+          </div>
+        </cell>
+      </list>
+    </div>
+  </wxc-navpage>
+</template>
+
+<style>
+  .list {
+    height: 1200px;
+  }
+  .count {
+    font-size: 48px;
+    margin:10px;
+  }
+  .refresh-view {
+    height: 80px;
+    width: 750px;
+    justify-content: center;
+    align-items: center;
+  }
+  .refresh-arrow {
+    font-size: 30px;
+    color: #45b5f0;
+  }
+  .indicator {
+    height: 40px;
+    width: 40px;
+    color:#45b5f0;
+  }
+  .row {
+    width: 750px;
+  }
+  .item {
+  }
+
+</style>
+
+<script>
+  require('weex-components');
+  var channel = require('../model/channel');
+  module.exports = {
+    data: {
+      refresh_display: 'hidden',
+      dir: "examples",
+      rows: []
+    },
+    methods: {
+      onrefresh: function(e) {
+        var self = this;
+        self.refresh_display = 'show';
+        var self = this;
+        channel.getEpgSchedulesNow(function(ret) {
+          self.refresh_display = 'hide';
+          for (var i = 0; i < ret.msg.length; i++) {
+              var cname = ret.msg[i];
+              var item = ret.data[cname];
+              item.cid = cname;
+              if (item) {
+                self.rows.push(item);
+              }
+          }
+        });
+      }
+    },
+    // http://alibaba.github.io/weex/doc/references/component-defs.html
+    created: function() {
+      var self = this;
+      channel.getEpgSchedulesNow(function(ret) {
+        for (var i = 0; i < ret.msg.length; i++) {
+            var cname = ret.msg[i];
+            var item = ret.data[cname];
+            item.cid = cname;
+            if (item) {
+              self.rows.push(item);
+            }
+        }
+      });
+      self.$on('naviBar.leftItem.click',function(e){
+        var params = {
+            'animated': 'true'
+        };
+        this.$call('navigator', 'pop', params, function () {
+        });
+      });
+      self.$on('naviBar.rightItem.click',function(e){
+        var params = {
+            url: this.baseURL + 'Baji/modules/login.js',
+            'animated': 'true'
+        };
+        this.$call('navigator', 'push', params, function () {
+        });
+      });
+
+      var bundleUrl = this.$getConfig().bundleUrl;
+      bundleUrl = new String(bundleUrl);
+      console.log('hit', bundleUrl);
+      var nativeBase;
+      var isAndroidAssets = bundleUrl.indexOf('file://assets/') >= 0;
+
+      var isiOSAssets = bundleUrl.indexOf('file:///') >= 0 && bundleUrl.indexOf('WeexDemo.app') > 0;
+      if (isAndroidAssets) {
+        nativeBase = 'file://assets/';
+      }
+      else if (isiOSAssets) {
+        // file:///var/mobile/Containers/Bundle/Application/{id}/WeexDemo.app/
+        // file:///Users/{user}/Library/Developer/CoreSimulator/Devices/{id}/data/Containers/Bundle/Application/{id}/WeexDemo.app/
+        nativeBase = bundleUrl.substring(0, bundleUrl.lastIndexOf('/') + 1);
+      }
+      else {
+        var host = 'localhost:12580';
+        var matches = /\/\/([^\/]+?)\//.exec(this.$getConfig().bundleUrl);
+        if (matches && matches.length >= 2) {
+          host = matches[1];
+        }
+        nativeBase = 'http://' + host + '/' + this.dir + '/build/';
+      }
+      var h5Base = './index.html?page=./' + this.dir + '/build/';
+      // in Native
+      var base = nativeBase;
+      if (typeof window === 'object') {
+        // in Browser or WebView
+        base = h5Base;
+      }
+      this.baseURL = base;
+    }
+  }
+</script>

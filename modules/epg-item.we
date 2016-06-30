@@ -1,0 +1,39 @@
+<template>
+    <div class="epg-item">
+        <text class="text-name" style="flex:2">{{name}}</text>
+        <div class="show-time">
+          <text class="text-start-time">{{start_time_f}}</text>
+          <text class="text-end-time">{{end_time_f}}</text>
+        </div>
+    </div>
+</template>
+
+<style>
+    .epg-item {
+      flex-direction:column;
+      justify-content:flex-start;
+      width: 750px;
+      height: 128px;
+      border-bottom-width: 2px;
+      border-bottom-color: #c0c0c0;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .text-name {
+      width: 750px;
+      font-size: 46px;
+      margin-top: 10px;
+      color: #000000;
+    }
+    .show-time {
+      width: 750px;
+      flex-direction:row;
+      justify-content:space-between;
+    }
+    .text-start-time {
+      color: grey;
+    }
+    .text-end-time {
+      color: grey;
+    }
+</style>
